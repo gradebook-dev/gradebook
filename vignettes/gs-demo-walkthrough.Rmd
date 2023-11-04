@@ -63,8 +63,8 @@ This function drops any students with missing student IDs and merges any replica
 gs_demo |>
     lower_colnames() |>
     check_data_colnames_format() |>
-    drop_ungraded_assignments() |>
-    process_id()
+    drop_ungraded_assignments()
+   # process_id()
 ```
 
 ### process_assignments()
@@ -75,7 +75,7 @@ gs_demo |>
     lower_colnames() |>
     check_data_colnames_format() |>
     drop_ungraded_assignments() |>
-    process_id() |>
+  #  process_id() |>
     process_assignments()
 ```
 
@@ -87,7 +87,7 @@ pivot_df <- gs_demo |>
     lower_colnames() |>
     check_data_colnames_format() |>
     drop_ungraded_assignments() |>
-    process_id() |>
+   # process_id() |>
     process_assignments() |>
     pivot_gs()
 

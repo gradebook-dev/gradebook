@@ -54,7 +54,8 @@ process_id <- function(gs_data) {
         dplyr::mutate(n_sid = n()) |>
         dplyr::ungroup() |>
         dplyr::filter(n_sid == 1) |>
-        dplyr::bind_rows(de_duped_sids)
+        dplyr::bind_rows(de_duped_sids) |>
+        dplyr::select(-n_sid)
 }
 
 
