@@ -178,8 +178,8 @@ flat_policy <- policy_nested |>
 path <- "~/Desktop/gradebook-stat20/STAT_20_Fall_2023_grades_10_16.csv" # Andrew
 processed_data <- read_gs(path) |>
     process_gs_data() |> 
-  compute_lateness(flat_policy = flat_policy) |>
-  prep_for_grading()
+    compute_lateness(flat_policy = flat_policy) |>
+    prep_for_grading()
 ```
 
 ## Calculate Grades 1 - Mapping
