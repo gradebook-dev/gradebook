@@ -1,0 +1,252 @@
+---
+title: "Stat20Comparison"
+format: html
+editor: visual
+---
+
+## Prep for Grading
+
+```{r}
+library(gradebook)
+```
+
+#### Policy File
+
+```{r}
+policy_nested<- list(
+  list(category = "RQ",
+       aggregation = "equally_weighted",
+       weight = 0.03,
+       lateness = list(
+           interval = list(c(-Inf, "00:00:00"), 
+                           c("00:00:01", "01:00:00"),
+                           c("01:00:01", "23:59:59"), 
+                           c("24:00:00", Inf)),
+           scale = list(1, .95, .7, 0)
+       ),
+       assignments = c(
+         "RQ: Taxonomy of Data",
+         "RQ: A Tool for Computing with Data",
+         "RQ: Summarizing Numerical Data",
+         "RQ: Summarizing Categorical Data",
+         "RQ: Grammar of Graphics",
+         "RQ: Conditioning",
+         "RQ: Summarizing Numerical Associations",
+         "RQ: Communicating with Graphics",
+         "RQ: How to Calculate Chances",
+         "RQ: From Samples to Populations",
+         "RQ: Multiple Linear Regression",
+         "RQ: Random variables",
+         "RQ: Expected Value and Variance of a Random Variable",
+         "RQ: Confidence Intervals"
+       )),
+  list(category = "PS",
+       aggregation = "equally_weighted",
+       weight = 0.07,
+       lateness = list(
+           interval = list(c(-Inf, "00:00:00"), 
+                           c("00:00:01", "01:00:00"), 
+                           c("01:00:01", "23:59:59"), 
+                           c("24:00:00", Inf)),
+           scale = list(1, .95, .7, 0)
+       ),
+       assignments = c(
+         "PS 1: Course Surveys",
+         "PS 2: Taxonomy of Data",
+         "PS 3: Summarizing Numerical Data",
+         "PS 4: Conditioning",
+         "PS 5: Communicating with Graphics",
+         "PS 6: Summarizing Numerical Associations",
+         "PS 7: Intro to Chance"
+       )),
+  list(category = "Plenary Lectures",
+       aggregation = "equally_weighted",
+       weight = 0.03,
+       assignments = c(
+         "Plenary Lecture Assignment 1",
+         "Plenary Lecture Assignment 2"
+       )),
+  list(category = "Lab",
+       aggregation = "equally_weighted",
+       weight = 0.35,
+       assignments = list(
+         list(category = "Lab 1",
+              aggregation = "weighted_by_points",
+              lateness = list(
+           interval = list(c(-Inf, "00:00:00"), 
+                           c("00:00:01", "01:00:00"), 
+                           c("01:00:01", "23:59:59"), 
+                           c("24:00:00", Inf)),
+           scale = list(1, .95, .7, 0)
+       ),
+              assignments = c(
+                "Lab 1.1: Arbuthnot, Understanding the Context of the Data",
+                "Lab 1.2: Arbuthnot, Computing on the Data"
+              )),
+         list(category = "Lab 2",
+              aggregation = "weighted_by_points",
+              lateness = list(
+           interval = list(c(-Inf, "00:00:00"), 
+                           c("00:00:01", "01:00:00"), 
+                           c("01:00:01", "23:59:59"), 
+                           c("24:00:00", Inf)),
+           scale = list(1, .95, .7, 0)
+       ),
+              assignments = c(
+                "Lab 2.1: Class Survey, Understanding the Context of the Data",
+                "Lab 2.2: Class Survey, Computing on the Data"
+              )),
+         list(category = "Lab 3",
+              aggregation = "weighted_by_points",
+              lateness = list(
+           interval = list(c(-Inf, "00:00:00"), 
+                           c("00:00:01", "01:00:00"), 
+                           c("01:00:01", "23:59:59"), 
+                           c("24:00:00", Inf)),
+           scale = list(1, .95, .7, 0)
+       ),
+              assignments = c(
+                "Lab 3.1: Flights, Understanding the Context",
+                "Lab 3.2: Flights, Computing on the Data"
+              ))
+       )),
+  list(category = "Quiz",
+       aggregation = "equally_weighted",
+       weight = .25,
+       assignments = list(
+         list(category = "Quiz 1",
+              aggregation = "equally_weighted",
+              assignments = list(
+                list(category = "Quiz 1 Individual",
+                     aggregation = "max",
+                     assignments = c(
+                       "Quiz 1 Version A",
+                       "Quiz 1 Version B",
+                       "Quiz 1 Version C",
+                       "Quiz 1 Version D"
+                     )
+                     ),
+                list(category = "Quiz 1 Group",
+                     aggregation = "max",
+                     assignments = c(
+                       "Quiz 1 Version A Group",
+                       "Quiz 1 Version B Group",
+                       "Quiz 1 Version C Group",
+                       "Quiz 1 Version D Group"
+                     )
+                     )
+              )
+              ),
+         list(category = "Quiz 2",
+              aggregation = "equally_weighted",
+              assignments = list(
+                list(category = "Quiz 2 Individual",
+                     aggregation = "max",
+                     assignments = c(
+                       "Quiz 2 Version A Individual",
+                       "Quiz 2 Version B Individual",
+                       "Quiz 2 Version C Individual",
+                       "Quiz 2 Version D Individual"
+                     )
+                     ),
+                list(category = "Quiz 2 Group",
+                     aggregation = "max",
+                     assignments = c(
+                       "Quiz 2 Version A Group",
+                       "Quiz 2 Version B Group",
+                       "Quiz 2 Version C Group",
+                       "Quiz 2 Version D Group"
+                     )
+                     )
+              )
+              )
+       )
+  )
+)
+
+flat_policy <- policy_nested |>
+  flatten_policy()|>
+  purrr::map(process_policy_names)
+
+#flat_policy[[14]]$assignments <- c("quiz_1", "quiz_2") #manually correcting double nested
+```
+
+#### Gradescope Data
+
+```{r}
+processed_data <- read_gs("~/Desktop/Fall '23/Gradebook/Stat20Fall2023/STAT_20_Fall_2023_grades_10_16.csv") |>
+    process_gs_data() |> 
+  compute_lateness(flat_policy = flat_policy) |>
+  prep_for_grading()
+```
+
+## Calculate Grades 1 - Mapping
+
+```{r}
+grades1 <- processed_data |>
+  get_category_grades(policy = flat_policy)
+
+```
+
+## Calculate Grades 2 - For Loop
+
+```{r}
+for_loop_grades <- processed_data|>
+    calculate_grades_with_for_loop(flat_policy = flat_policy)
+```
+
+## Compare RQs - Equally Weighted
+
+```{r}
+library(tidyverse)
+rq_for_loop <- for_loop_grades |>
+  select(sid, `rq_-_percent`)
+names(rq_for_loop) <- c("sid", "rq_for_loop")
+rq_grades1 <- grades1 |>
+  select(sid, `rq_-_percent`) 
+names(rq_grades1) <- c("sid", "rq_grades1")
+rq_for_loop|>
+  left_join(rq_grades1, by = "sid") |>
+  ggplot(aes(x = rq_for_loop, y = rq_grades1)) + geom_point() +
+  labs(x = "For Loop Grades", y = "Grades 1") + 
+  ggtitle("RQs (equally_weighted)") + 
+  geom_abline(slope=1, intercept=0, color = "red")
+```
+
+## Compare Lab 1 - Weighted by Points
+
+```{r}
+lab_for_loop <- for_loop_grades |>
+  select(sid, `lab_1_-_percent`)
+names(lab_for_loop) <- c("sid", "lab_for_loop")
+lab_grades1 <- grades1 |>
+  select(sid, `lab_1_-_percent`)
+names(lab_grades1) <- c("sid", "lab_grades1")
+lab_for_loop|>
+  left_join(lab_grades1, by = "sid") |>
+  ggplot(aes(x = lab_for_loop, y = lab_grades1)) + geom_point() +
+  labs(x = "For Loop Grades", y = "Grades 1") +
+  ggtitle("Lab 1 (weighted_by_points)") + 
+  geom_abline(slope=1, intercept=0, color = "red")
+```
+
+## Compare Quiz 1 Individual - Max
+
+{r}lab_for_loop \<- for_loop_grades \|\> select(sid, `lab_1_-_percent`)lab_grades1 \<- grades1 \|\> select(sid, lab_1) lab_for_loop\|\> left_join(lab_grades1, by = "sid") \|\> ggplot(aes(x = `lab_1_-_percent`, y = lab_1)) + geom_point() + labs(x = "For Loop Grades", y = "Grades 1")
+
+```{r}
+quiz1individual_for_loop <- for_loop_grades |>
+  select(sid, `quiz_1_individual_-_percent`)
+names(quiz1individual_for_loop) <- c("sid", "quiz1_for_loop")
+quiz1individual_grades1 <- grades1 |>
+  select(sid, `quiz_1_individual_-_percent`)
+names(quiz1individual_grades1) <- c("sid", "quiz1_grades1")
+quiz1individual_grades1|>
+  left_join(quiz1individual_for_loop, by = "sid") |>
+  ggplot(aes(x = quiz1_for_loop, y = as.numeric(quiz1_grades1))) + 
+  geom_point() +
+  labs(x = "For Loop Grades", y = "Grades 1")  + 
+  ggtitle("Quiz 1 Individual (max)") + 
+  geom_abline(slope=1, intercept=0, color = "red")
+  
+```
