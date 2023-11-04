@@ -108,12 +108,13 @@ merge_replicated_records <- function(single_sid_df) {
     new_id <- single_sid_df |>
         summarize(across(
             everything(),
-            ~ if (inherits(., c("difftime", "hms"))) {
+            ~ if (lubridate::is.period(.) | 
+                  is.character(.) |
+                  is.POSIXct(.)
+                  ) {
                 ifelse(all(is.na(.)), NA, last(na.omit(.)))
-            } else if (is.numeric(.)) {
-                ifelse(all(is.na(.)), NA, max(., na.rm = TRUE))
             } else {
-                ifelse(all(is.na(.)), NA, last(na.omit(.)))
+                ifelse(all(is.na(.)), NA, max(., na.rm = TRUE))
             }
         ))
     return(new_id)
