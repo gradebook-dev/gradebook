@@ -1,19 +1,22 @@
-#' Reshape policy file from nested to flat
-#' 
-#' First propagates `lateness` to all child categories then cycles through the
-#' top-level categories of a policy file and unnests all subcategories to create
-#' a single level list of all categories and subcategories.
-#'
-#' @param policy A valid policy file stored as a list.
-#'
-#' @return A single level list of all categories and subcategories ordered where 
-#' all leaves will precede the parent category in the list order.
-#'
-#' @examples
-#' # Example
-#' flatten_policy(policy_demo)
+file = "stat20_s23_policy.yml"
+
+read_policy <- function(file) {
+    pol <- yaml::read_yaml(file)
+    pol2 <- replace_inf(pol)
+}
+
+replace_inf <- function(lst) {
+    lapply(lst, function(x) {
+        if (is.list(x)) {
+            replace_inf(x)
+        } else if (is.character(x)) {
+            ifelse(x == "Inf", Inf, x)
+            ifelse(x == "-Inf", -Inf, x)
+        } else {
+            x}})
+}
+
 #' @importFrom purrr map list_flatten
-#' @export
 flatten_policy <- function(policy) {
     policy$categories <- policy$categories |>
         purrr::map(\(x) copy_element_to_children(x, key = "lateness")) |>
@@ -47,22 +50,6 @@ extract_nested <- function(category) {
   c(nested_categories_flattened, list(category))
 }
 
-
-#' Copy list element to child assignment categories
-#' 
-#' A recursive function to copy an element of a policy file to
-#' all children categories that lack that element. If a child category has that
-#' element, that existing child element will not get overwritten by the parent element.
-#' 
-#' Can be used to propagate a field like `lateness` to all child categories of 
-#' a given category.
-#'
-#' @param category A list from a policy file corresponding to a category like "Labs".
-#' Must contain an element called `assignments`.
-#' @param key A character string of the name of the element that you wish to copy.
-#'
-#' @return A list of the same structure as the input category, but with specified
-#' element copied to all child categories that lack an element of that name.
 copy_element_to_children <- function(category, key) {
     
     # if the category has no children, just return the category

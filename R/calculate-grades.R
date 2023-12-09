@@ -119,6 +119,7 @@ get_one_grade <- function(gs_row, policy_item) {
 #' @importFrom dplyr bind_cols
 #' @importFrom purrr map modify_at compact
 #' @export
+
 get_category_grades <- function(gs, policy) {
   
   # pull off assignment scores and weights into matrix
