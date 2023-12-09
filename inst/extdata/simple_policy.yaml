@@ -3,8 +3,8 @@ coursewide:
 
 categories:
   - category: Labs
-    aggregation: weighted_by_points
     weight: 0.30
+    aggregation: weighted_by_points
     assignments:
       - "Lab 1"
       - "Lab 2"
@@ -13,18 +13,18 @@ categories:
       - "Lab 5"
       - "Lab 6"
   - category: Discussion
-    aggregation: equally_weighted
     weight: 0.10
+    aggregation: equally_weighted
     assignments:
       - "Discussion 1"
       - "Discussion 2"
   - category: Midterm
-    aggregation: none
     weight: 0.30
+    aggregation: none
     assignments:
       - "Midterm"
   - category: Final
-    aggregation: none
     weight: 0.30
+    aggregation: none
     assignments:
       - "Final"
