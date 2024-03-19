@@ -1,4 +1,4 @@
-#' Policy Demo File
+#' Simple Policy Demo File
 #'
 #' A demo policy file that mimics a hypothetical class syllabus
 #' 
@@ -23,8 +23,8 @@
 #'   ...
 #' }
 #' @examples
-#' policy_demo
+#' simple_policy
 #' 
-#' # yaml:as_yaml(policy_demo)
+#' # yaml:as_yaml(simple_policy)
 #' 
-"policy_demo"
+"simple_policy"

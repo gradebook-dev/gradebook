@@ -11,7 +11,7 @@
 #'
 #' @examples
 #' # Example
-#' flatten_policy(policy_demo)
+#' flatten_policy(simple_policy)
 #' @importFrom purrr map list_flatten
 #' @export
 flatten_policy <- function(policy) {
@@ -63,6 +63,8 @@ extract_nested <- function(category) {
 #'
 #' @return A list of the same structure as the input category, but with specified
 #' element copied to all child categories that lack an element of that name.
+#' 
+#' @export
 copy_element_to_children <- function(category, key) {
     
     # if the category has no children, just return the category

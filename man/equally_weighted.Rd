@@ -5,53 +5,42 @@
 \alias{weighted_by_points}
 \alias{max_score}
 \alias{min_score}
+\alias{weighted_mean}
 \alias{none}
-\title{Aggregate assignment scores}
+\title{Aggregation Functions}
 \usage{
-equally_weighted(scores, weights, n_drops = 0, ...)
+equally_weighted(grades_mat, category, assignments, weights = c())
 
-weighted_by_points(scores, weights, n_drops = 0, ...)
+weighted_by_points(grades_mat, category, assignments, weights = c())
 
-max_score(scores, weights, n_drops = 0, ...)
+max_score(grades_mat, category, assignments, weights = c())
 
-min_score(scores, weights, n_drops = 0, ...)
+min_score(grades_mat, category, assignments, weights = c())
 
-none(scores, weights, n_drops = 0, ...)
+weighted_mean(grades_mat, category, assignments, weights)
+
+none(grades_mat, category, assignments, weights = c())
 }
 \arguments{
-\item{scores}{A vector of assignment scores.}
+\item{grades_mat}{Matrix with assignments + associated cols for that category}
 
-\item{weights}{A vector of weights of the same length as \code{scores}. Weights
-that do not sum to one are ok - they get normalized.}
+\item{category}{Category name}
 
-\item{n_drops}{The number of lowest scores to drop before aggregating.}
+\item{assignments}{Assignment names for this category}
+
+\item{weights}{Weights for \code{weighted_mean}, default to NULL with other aggregation method}
 }
 \value{
-A single aggregated score (a vector of length 1).
+A matrix
 }
 \description{
-A collection of functions to aggregate assignment scores. Their s
+A collection of functions to compute scores for categories.
 \itemize{
-\item \code{equally_weighted()} computes a mean with the option to drop lowest scores.
-\item \code{weighted_by_points()} computes a weighted mean using a weights vector after
-optionally dropping the lowest scores.
+\item \code{equally_weighted()} computes a mean.
+\item \code{weighted_by_points()} computes a weighted mean using a weights vector.
 \item \code{max_score()} computes the max score.
 \item \code{min_score()} computes the min score after optionally dropping lowest scores.
-\item \code{none()} if there is only 1 score, returns it, otherwise throws an error.
-Serves as a passthrough aggregation for categories with only 1 assignment.
+\item \code{none()} if there is only 1 score, returns it, otherwise defaults to \code{equally_weighted}
 }
 }
-\examples{
-my_scores <- c(.7, .9, .1)
-my_weights <- c(15, 10, 10)
-
-equally_weighted(scores = my_scores, weights = my_weights, n_drops = 1)
-weighted_by_points(scores = my_scores, weights = my_weights, n_drops = 1)
-max_score(my_scores, weights = my_weights)
-min_score(my_scores,weights = my_weights, n_drops = 1)
-my_score <- c(.7)
-my_weight <- c(10)
-none(my_score, weights = my_weight)
-
-}
-\concept{{Aggregation functions}}
+\concept{{Aggregation Functions}}

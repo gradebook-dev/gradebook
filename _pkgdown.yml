@@ -30,37 +30,46 @@ reference:
     These functions are to validate and process the policy file.
   contents:
   - flatten_policy
-  
-- title: Lateness Functions
-  desc: >
-    These functions are to apply any lateness policies from the policy file
-    to the processed Gradescope data.
-  contents:
-  - calculate_lateness
-  - calculate_scores_after_lateness
-  - create_lateness_table
   - copy_element_to_children
+
 - title: Grading Functions
   desc: >
     These functions are to grade the processed Gradescope data 
     based on the criteria in the processed policy file
   contents:
-  - get_category_grades
-  - apply_clobber
-  - get_letter_grades
-  - get_one_grade
+  - get_grades
+  - get_category_grade
+  - score
+  - aggregation
+  - lateness
+  - drop_n_lowest
+  - aggregation_max_pts
+  - aggregation_lateness
+  - raw_over_max
   - equally_weighted
   - weighted_by_points
   - max_score
   - min_score
   - none
+  - sum_max_pts
+  - mean_max_pts
+  - until
+  - between
+  - after
+  - add
+  - scale_by
+  - set_to
+  - mean_lateness
+  - sum_lateness
+  - max_lateness
+  
 
 - title: Demo Items
   desc: >
     These items are used to demonstrate the functionality of this package.
   contents:
   - gs_demo
-  - policy_demo
+  - simple_policy
 
 development:
   mode: auto
