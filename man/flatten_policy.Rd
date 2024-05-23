@@ -19,6 +19,6 @@ top-level categories of a policy file and unnests all subcategories to create
 a single level list of all categories and subcategories.
 }
 \examples{
-# Example
-flatten_policy(simple_policy)
+flatten_policy(policy_demo)
+
 }

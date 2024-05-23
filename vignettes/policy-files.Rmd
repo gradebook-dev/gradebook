@@ -1,5 +1,5 @@
 ---
-title: "Writing Policy Files"
+title: "Building a Policy File"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{policy-files}
@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
 There are two ingredients that are needed to calculate course grades with `gradebook`: a data frame containing assignment scores and a file that encodes the grading policies often described in a syllabus. We call that file a *policy file*.
 
 Policy files are stored as [.yaml](https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started) files, a simple format for storing hierarchical data in a text file with minimal markup. Here is an example of a policy file for a course with a fairly simple grading scheme.
+
+Note that category names cannot be the same as any assignment names.
 
 ```yaml
 `r xfun::file_string(system.file("extdata", "simple_policy.yaml", package = "gradebook"))`

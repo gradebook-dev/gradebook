@@ -1,0 +1,27 @@
+coursewide:
+  course: Stat 101 Simple Syllabus
+
+categories:
+  - category: Homework
+    aggregation: equally_weighted
+    assignments:
+      - "Homework 1"
+      - "Homework 2"
+  - category: Midterm
+    aggregation: none
+    assignments:
+      - "Midterm Exam"
+  - category: Final
+    aggregation: none
+    assignments:
+      - "Final Exam"
+  - category: Overall Grade
+    aggregation: weighted_mean
+    weights: 
+    - 0.20
+    - 0.40
+    - 0.40
+    assignments:
+      - "Homework"
+      - "Midterm"
+      - "Final"

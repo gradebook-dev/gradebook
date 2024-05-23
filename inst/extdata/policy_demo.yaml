@@ -1,9 +1,8 @@
 coursewide:
-  course: Stat 101
-
+  course_name: Stat 101
+  description: syllabus for gs_demo
 categories:
   - category: Labs
-    weight: 0.30
     aggregation: weighted_by_points
     assignments:
       - "Lab 1"
@@ -13,18 +12,27 @@ categories:
       - "Lab 5"
       - "Lab 6"
   - category: Discussion
-    weight: 0.10
     aggregation: equally_weighted
     assignments:
       - "Discussion 1"
       - "Discussion 2"
-  - category: Midterm
-    weight: 0.30
+  - category: Midterm Exam
     aggregation: none
     assignments:
       - "Midterm"
-  - category: Final
-    weight: 0.30
+  - category: Final Exam
     aggregation: none
     assignments:
       - "Final"
+  - category: Overall Grade
+    aggregation: weighted_mean
+    weights:
+    - 0.30
+    - 0.10
+    - 0.30
+    - 0.30
+    assignments:
+    - Labs
+    - Discussion
+    - Midterm
+    - Final

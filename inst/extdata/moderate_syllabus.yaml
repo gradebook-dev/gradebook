@@ -1,0 +1,42 @@
+coursewide:
+  course: Stat 101 Moderate Syllabus
+  description: This is the description for a course with moderate syllabus complexity
+
+categories:
+  - category: Homework
+    lateness:
+    - between:
+        from: '00:00:01'
+        to: '24:00:00'
+    - scale_by: 0.9
+    - after: '24:00:01'
+    - scale_by: 0.7
+    drop_n_lowest: 2
+    weights: 0.40
+    aggregation: equally_weighted
+    assignments:
+      - "Homework 1"
+      - "Homework 2"
+      - "Homework 3"
+      - "Homework 4"
+      - "Homework 5"
+  - category: Midterm
+    weights: 0.20
+    aggregation: none
+    assignments:
+      - "Midterm Exam"
+  - category: Final
+    weights: 0.40
+    aggregation: none
+    assignments:
+      - "Final Exam"
+  - category: Overall Grade
+    aggregation: weighted_mean
+    weights: 
+    - 0.20
+    - 0.40
+    - 0.40
+    assignments:
+      - "Homework"
+      - "Midterm"
+      - "Final"

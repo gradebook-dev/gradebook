@@ -1,0 +1,66 @@
+coursewide:
+  course: Stat 101 Complex Syllabus
+  description: This is the description for a course with a complex syllabus
+
+categories:
+  - category: Labs
+    weights: 0.40
+    drop_n_lowest: 1
+    aggregation: equally_weighted
+    assignments:
+    - category: Lab 1
+      lateness:
+      - between:
+          from: '00:00:01'
+          to: '24:00:00'
+      - scale_by: 0.9
+      - after: '24:00:01'
+      - scale_by: 0.7
+      aggregation: weighted_by_points
+      assignments:
+      - "Lab 1.1"
+      - "Lab 1.2"
+    - category: Lab 2
+      lateness:
+      - between:
+          from: '00:00:01'
+          to: '24:00:00'
+      - scale_by: 0.9
+      - after: '24:00:01'
+      - scale_by: 0.7
+      aggregation: weighted_by_points
+      assignments:
+      - "Lab 2.1"
+      - "Lab 2.2"
+    - category: Lab 3
+      lateness:
+      - between:
+          from: '00:00:01'
+          to: '24:00:00'
+      - scale_by: 0.9
+      - after: '24:00:01'
+      - scale_by: 0.7
+      aggregation: weighted_by_points
+      assignments:
+      - "Lab 3.1"
+      - "Lab 3.2"
+  - category: Midterm
+    weights: 0.20
+    aggregation: none
+    assignments:
+      - "Midterm Exam"
+  - category: Final
+    weights: 0.40
+    aggregation: none
+    assignments:
+      - "Final Exam"
+  - category: Overall Grade
+    aggregation: weighted_mean
+    weights: 
+    - 0.20
+    - 0.40
+    - 0.40
+    assignments:
+      - "Labs"
+      - "Midterm"
+      - "Final"

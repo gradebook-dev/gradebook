@@ -1,0 +1,89 @@
+---
+title: "Case Study: Moderate Syllabus"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{moderate-syllabus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+Now, we will walk through a moderately complex syllabus and its Gradebook implementation with 5 students in the class. Start with what this syllabus would look like on a class website.
+
+## Syllabus
+
+
+The final student's grade is computed from *1) homework assignments, 2) midterm exam, and 3) the final exam*. Their grade will be computed as follows:
+
+-   Homework 20%
+    - Homework 1, Homework 2, Homework 3, Homework 4, Homework 5
+    - All assignments are aggregated equally
+    - The lowest 2 assignments are dropped
+    - All components of the lab individually experience a lateness penalty:
+      - 10% reduction of the score, if assignment is submitted late but within 24 hours of the deadline
+      - 30% reduction of the score, if assignment is submitted after 24 hours of the deadline
+-   Midterm 40%
+-   Final Exam 40%
+
+
+## Policy File 
+Here is what the policy file looks like:
+```yaml
+`r xfun::file_string(system.file("extdata", "moderate_syllabus.yaml", package = "gradebook"))`
+
+```
+
+```{r, include = FALSE}
+library(gradebook)
+yaml::read_yaml(system.file("extdata", "moderate_syllabus.yaml", package = "gradebook"))
+```
+
+## Gradescope Assigments File
+Here is what the gradescope assignments file looks like:
+
+<div style="height: 300px; overflow: auto;">
+```{r, echo=FALSE}
+moderate_syllabus_data <- readr::read_csv(system.file("extdata", "moderate_syllabus_data.csv", package = "gradebook"))
+knitr::kable(moderate_syllabus_data)
+```
+</div>
+
+## Workflow
+
+**Overall grade** is calculated using the three categories, with the weights as shown above; This is represented by `Overall Grade` with an aggregation of `weighted_mean`.
+
+The **Midterm** and **Final Exam** categories contain only a single assignment, as shown in the `moderate_syllabus_data` file, which is usually downloaded from gradescope.
+
+The **Homework** category is compiled of five assignments: *"Homework 1"*, *"Homework 2"*, *"Homework 3"*, *"Homework 4"*, *"Homework 5"* in the `moderate_syllabus_data`.
+
+### Grade Calculations
+
+```{r, message = FALSE}
+moderate_syllabus_data <- readr::read_csv(system.file("extdata", "moderate_syllabus_data.csv", package = "gradebook"))
+
+policy <- yaml::read_yaml(system.file("extdata", "moderate_syllabus.yaml", package = "gradebook"))
+
+validated_policy <- validate_policy(policy, gs = moderate_syllabus_data)
+
+grades <- get_grades(policy = validated_policy, gs = moderate_syllabus_data)
+```
+First, read in your YAML policy file. `validate_policy()` checks the formatting of the policy file. Finally, `get_grades()` grades your assignments based on your policy file.
+
+The output of the grades looks like:
+
+::: {style="height: 300px; overflow: auto;"}
+```{r, echo=FALSE}
+knitr::kable(grades)
+```
+:::
+
+Disclaimers:
+
+-   The `weights` of a category with aggregation `weighted_mean` should be corresponding order with the `assignments.`
+
+-   Categories cannot have the same name as any other assignment name.

@@ -12,18 +12,8 @@ reference:
     These functions are to validate and process the Gradescope data.
 - subtitle: Validate Gradescope Data
   contents:
-  - read_gs
-  - check_data_format
   - get_id_cols
   - get_assignments
-  - drop_ungraded_assignments
-  
-- subtitle: Process Gradescope Data
-  contents:
-  - process_gs
-  - process_id
-  - get_duplicate_ids
-  - pivot_gs
   
 - title: Policy File Functions
   desc: >
@@ -62,14 +52,26 @@ reference:
   - mean_lateness
   - sum_lateness
   - max_lateness
-  
 
 - title: Demo Items
   desc: >
     These items are used to demonstrate the functionality of this package.
   contents:
   - gs_demo
-  - simple_policy
+  - policy_demo
+
+articles:
+- title: Getting started
+  navbar: ~
+  contents:
+  - policy-files
+
+- title: Case Studies
+  navbar: Case Studies
+  contents:
+  - simple-syllabus
+  - moderate-syllabus
+  - complex-syllabus
 
 development:
   mode: auto

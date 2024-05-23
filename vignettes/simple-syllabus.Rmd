@@ -1,0 +1,86 @@
+---
+title: "Case Study: Simple Syllabus"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{simple-syllabus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Now, we will walk through a simple syllabus and its Gradebook implementation with 5 students in the class. Start with what this syllabus would look like on a class website:
+
+## Syllabus
+
+The final student's grade is computed from *1) homework assignments, 2) midterm and 3) the final exam*. Their grade will be computed as follows:
+
+-   Homework 20%
+    -   Homework 1, Homework 2 (and they are aggregated equally)
+-   Midterm 40%
+-   Final Exam 40%
+
+## Policy File
+
+Here is what the policy file looks like:
+
+``` yaml
+`r xfun::file_string(system.file("extdata", "simple_syllabus.yaml", package = "gradebook"))`
+```
+
+```{r, include = FALSE}
+library(gradebook)
+yaml::read_yaml(system.file("extdata", "simple_syllabus.yaml", package = "gradebook"))
+```
+
+## Gradescope Assigments File
+
+Here is what the Gradescope assignments file looks like:
+
+::: {style="height: 300px; overflow: auto;"}
+```{r, echo=FALSE}
+simple_syllabus_data <- readr::read_csv(system.file("extdata", "simple_syllabus_data.csv", package = "gradebook"))
+knitr::kable(simple_syllabus_data)
+```
+:::
+
+## Workflow
+
+**Overall grade** is calculated using the three categories, with the weights as shown above; This is represented by `Overall Grade` with an aggregation of `weighted_mean`.
+
+The **Midterm** and **Final Exam** categories contain only a single assignment, as shown in the `simple_syllabus_data` file, which is usually downloaded from gradescope.
+
+The **Homework** category is compiled of two assignments: *"Homework 1"* and *"Homework 2"* in the `simple_syllabus_data`.
+
+### Grade Calculations
+
+```{r, message=FALSE}
+simple_syllabus_data <- readr::read_csv(system.file("extdata", "simple_syllabus_data.csv", package = "gradebook"))
+
+policy <- yaml::read_yaml(system.file("extdata", "simple_syllabus.yaml", package = "gradebook"))
+
+validated_policy <- validate_policy(policy, gs = simple_syllabus_data)
+
+grades <- get_grades(policy = validated_policy, gs = simple_syllabus_data)
+```
+
+First, read in your YAML policy file. `validate_policy()` checks the formatting of the policy file. Finally, `get_grades()` grades your assignments based on your policy file.
+
+The output of the grades looks like:
+
+::: {style="height: 300px; overflow: auto;"}
+```{r, echo=FALSE}
+knitr::kable(grades)
+```
+:::
+
+### Disclaimers:
+
+-   The `weights` of a category with aggregation `weighted_mean` should be corresponding order with the `assignments.`
+
+-   Categories cannot have the same name as any other assignment name.
