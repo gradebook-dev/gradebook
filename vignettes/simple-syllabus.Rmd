@@ -77,6 +77,39 @@ knitr::kable(grades)
 ```
 :::
 
+## Syllabus as a Grading Script
+Here is the coded version of the same syllabus.
+```{r}
+script_grades <- simple_syllabus_data |>
+  # calculate percentages
+  dplyr::mutate(
+    `Homework 1` = `Homework 1`/`Homework 1 - Max Points`,
+    `Homework 2` = `Homework 2`/`Homework 2 - Max Points`,
+    `Midterm Exam` = `Midterm Exam`/`Midterm Exam - Max Points`,
+    `Final Exam` = `Final Exam`/`Final Exam - Max Points`
+  ) |>
+  # calculate category grade for "Homework" 
+  dplyr::mutate( `Homework` = (`Homework 1` + `Homework 2`)/2 ) |>
+  # calculate final Overall Grade
+  dplyr::mutate(`Overall Grade` = 0.2*`Homework` + 0.4*`Midterm Exam` + 0.4*`Final Exam`) 
+```
+
+And, as you can see, the computations align.
+```{r}
+library(ggplot2)
+tibble::tibble(
+  `Script Grades` = script_grades$`Overall Grade`,
+  `Gradebook Grades` = grades$`Overall Grade`
+) |>
+  ggplot(aes(x = `Gradebook Grades`, y = `Script Grades`)) + 
+  geom_point(size = 2) + geom_abline(slope = 1, color = "red")
+```
+```{r, echo = FALSE}
+if (!all(script_grades$`Overall Grade` == grades$`Overall Grade`))
+  stop("Script grades and Gradebook grades do not align for simple syllabus vignette.")
+```
+
+
 ### Disclaimers:
 
 -   The `weights` of a category with aggregation `weighted_mean` should be corresponding order with the `assignments.`

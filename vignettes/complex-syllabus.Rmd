@@ -88,6 +88,75 @@ knitr::kable(grades)
 ```
 :::
 
+## Syllabus as a Grading Script
+Here is the coded version of the same syllabus.
+```{r}
+# function to implement lateness policy
+lateness_penalty <- function(score_vec, lateness_vec){
+  lateness <- lubridate::period_to_seconds(lubridate::hms(lateness_vec))/60
+  dplyr::case_when(
+    lateness == 0 ~ score_vec,
+    lateness <= 1440 ~ 0.9*score_vec,
+    .default = 0.7*score_vec
+  )
+}
+
+#function to drop lowest two grades
+one_drop <- function(data){
+  apply(dplyr::select(data, `Lab 1`, `Lab 2`, `Lab 3`), 1, function(x) sort(x, decreasing = TRUE)[1:2]) |> t()
+}
+
+lab_grades_with_lateness <- complex_syllabus_data |>
+  # calculate percentages
+  dplyr::mutate(
+    `Lab 1.1` = `Lab 1.1`/`Lab 1.1 - Max Points`,
+    `Lab 1.2` = `Lab 1.2`/`Lab 1.2 - Max Points`,
+    `Lab 2.1` = `Lab 2.1`/`Lab 2.1 - Max Points`,
+    `Lab 2.2` = `Lab 2.2`/`Lab 2.2 - Max Points`,
+    `Lab 3.1` = `Lab 3.1`/`Lab 3.1 - Max Points`,
+    `Lab 3.2` = `Lab 3.2`/`Lab 3.2 - Max Points`,
+    `Midterm Exam` = `Midterm Exam`/`Midterm Exam - Max Points`,
+    `Final Exam` = `Final Exam`/`Final Exam - Max Points`
+  ) |>
+  #lateness
+  dplyr::mutate(
+    `Lab 1.1` = lateness_penalty(`Lab 1.1`,`Lab 1.1 - Lateness (H:M:S)`),
+    `Lab 1.2` = lateness_penalty(`Lab 1.2`,`Lab 1.2 - Lateness (H:M:S)`),
+    `Lab 2.1` = lateness_penalty(`Lab 2.1`,`Lab 2.1 - Lateness (H:M:S)`),
+    `Lab 2.2` = lateness_penalty(`Lab 2.2`,`Lab 2.2 - Lateness (H:M:S)`),
+    `Lab 3.1` = lateness_penalty(`Lab 3.1`,`Lab 3.1 - Lateness (H:M:S)`),
+    `Lab 3.2` = lateness_penalty(`Lab 3.2`,`Lab 3.2 - Lateness (H:M:S)`)
+  ) |>
+  #calculate Lab 1, Lab 2, Lab 3 category grades
+  dplyr::mutate(
+    `Lab 1` = (`Lab 1.1`*`Lab 1.1 - Max Points` + `Lab 1.2`*`Lab 1.2 - Max Points`)/(`Lab 1.1 - Max Points` + `Lab 1.2 - Max Points`),
+    `Lab 2` = (`Lab 2.1`*`Lab 2.1 - Max Points` + `Lab 2.2`*`Lab 2.2 - Max Points`)/(`Lab 2.1 - Max Points` + `Lab 2.2 - Max Points`),
+    `Lab 3` = (`Lab 3.1`*`Lab 3.1 - Max Points` + `Lab 3.2`*`Lab 3.2 - Max Points`)/(`Lab 3.1 - Max Points` + `Lab 3.2 - Max Points`)
+  )
+script_grades <- lab_grades_with_lateness |>
+  # calculate category grade for "Homework" 
+  dplyr::mutate( 
+    `Labs` = rowMeans(one_drop(lab_grades_with_lateness))) |>
+  # calculate final Overall Grade
+  dplyr::mutate(`Overall Grade` = 0.4*`Labs` + 0.2*`Midterm Exam` + 0.4*`Final Exam`) 
+```
+
+And, as you can see, the computations align.
+```{r}
+library(ggplot2)
+tibble::tibble(
+  `Script Grades` = script_grades$`Overall Grade`,
+  `Gradebook Grades` = grades$`Overall Grade`
+) |>
+  ggplot(aes(x = `Gradebook Grades`, y = `Script Grades`)) + 
+  geom_point(size = 2) + geom_abline(slope = 1, color = "red")
+```
+```{r, echo = FALSE}
+if (!all(script_grades$`Overall Grade` == grades$`Overall Grade`))
+  stop("Script grades and Gradebook grades do not align for complex syllabus vignette.")
+```
+
+
 Disclaimers:
 
 -   The `weights` of a category with aggregation `weighted_mean` should be corresponding order with the `assignments.`
