@@ -1,0 +1,104 @@
+---
+title: "Detailed Canvas Export Info"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Detailed Canvas Export Info}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(gradebook)
+```
+
+This vignette details the specific structure of exported Canvas files. For information on how to use Canvas grade data with Gradebook, view the [Working With Canvas Data](https://gradebook-dev.github.io/gradebook/articles/working-with-canvas-data.html) vignette instead. This vignette details in depth information about Canvas file exports for curious advanced users.
+
+There are many exports from Canvas: Canvas divides student information into multiple separate csv exports as compared to the singular Gradescope csv. Currently, there are three relevant csv exports: grades.csv, lateness.csv, and roster.csv.
+
+Here is information about the data formatting of each csv:
+
+## Grades.csv:
+
+### ID Columns:
+
+Student - This gives the student name in format Last, First (different than Gradescope)
+
+ID - This gives the student’s Canvas ID. It is the primary key is Canvas and thus the best choice when joining canvas dataframes
+
+SIS User ID - The SIS is the name of the system that Canvas interfaces with for each individual university that uses Canvas. For example, Berkeley’s SIS is CalCentral. This has been confirmed by Canvas Employees. Thus, SIS User ID is the student’s Cal ID for our university. Typically this will be the desired primary key for operations outside of Gradebook. Note that, like Gradescope, SIS User ID will contain some entries of the form “UID: #####”. The meaning of these entries is unclear. 
+
+SIS Login ID - The meaning of this column is unclear. It does not appear relevant for our purposes. 
+
+Section - This communicates what section the student is in. 
+
+### Assignment Columns: 
+
+All individual assignments in Canvas grades csv contain a name and a unique identifier ID number. For example, columns that contain assignment scores for individual assignments will be of the form “Quiz 1 (87568490)”. Here, “Quiz 1” will be the name visible to students and Canvas generates and adds the ID number. Also, note this ID number is added to both assignments that originated in Gradescope and are imported to Canvas via API and assignments that were created in an R script and uploaded to Canvas as a csv. The number of digits in the ID is not guaranteed. 
+
+### Category Columns:
+
+Since Canvas allows users to generate aggregated categories, those categories are given as just the category name without an ID appended. For example, an aggregated category of Homework may have the column name “Homework Current Score”. These columns may appear in several variations with information appended to the column name including “Current Score”, “Unposted Current Score”, “Final Score”, “Unposted Final Score” depending on the options chosen by the Canvas user. Category columns are typically read-only. Canvas grade csvs can also contain a “Final Grade” column. 
+
+### Max Points:
+
+While Gradescope supplies the maximum number of points available for each assignment as a separate column for each assignment, Canvas grade csv gives it as a row in the data frame. The row of maximum possible points can be identified by having “    Points Possible” as the Student variable. While this is more space efficient, it is not a tidy data form so it needs to be converted into Gradescope form. 
+
+### Other Information:
+
+Canvas grade csv does not contain information about when assignments were submitted or if an assignment was late. This information is partially supplied in the lateness.csv (discussed below). The grade csv also does not contain email addresses (given in roster.csv) and Canvas does not appear to use emails as keys (IDs) for students. It also does not appear that there are any duplicated student rows in Canvas outputs. 
+
+## Lateness CSV:
+
+Information on late assignments is given in this CSV. Each row in this dataframe corresponds to a particular assignment that was submitted late by a particular student. Thus, a particular assignment or student can have multiple rows in the dataframe. Thus, this dataframe should be pivoted (such as by tidyr::pivot_wider) into a format similar to Gradescope. 
+
+### Columns:
+Student Name - same as Student Column in grades.csv
+
+Student ID - This is the same information as the “ID” column in the grades csv. It is the student’s canvas ID. 
+
+Course Name, Course ID, Section Name - These are self-explanatory and not useful. 
+
+Assignment Name - the name of the assignment that was submitted late.
+
+Points Possible - This is the maximum number of points the assignment is worth. 
+
+Due Date - This is the date the assignment was due. Unfortunately, it only provides the due date and does not provide the time the assignment was due. This is an issue when calculating lateness (to be covered next). 
+
+Submitted Date - The date the assignment was submitted including the exact time of submission with time zone. 
+
+Graded Date - The date and time when the assignment was graded including the time zone. 
+
+Posted Date - The date and time when the assignment grade was posted to students including the time zone. 
+
+### Notes:
+
+With some data wrangling, this csv can be aggregated with the grades csv to add lateness and submission time information, which will make the csv more similar to a Gradescope csv. 
+
+However, the lack of a due time information makes it impossible to calculate lateness with an error upper bound of less than 12 hours. My current implementation assumes the due time is at 12:00 AM on the due date (the least generous to students) so assignments may be marked as up to 24 hours later than they really were. For example, if a class often had quizzes due at 9:30 AM (perhaps assignments are due at the beginning of lecture), a student submitted at 9:46 AM, and thus would be marked as 9 hours 46 minutes late by this assumption rather than 16 minutes late. Note that since only assignments that were submitted late are included in this csv, over-assumption of lateness only applies to assignments that we submitted late. For example, a quiz submitted at 9:26 AM would not be in the late csv and thus would not be given any lateness in our processing. 
+
+As a solution, we command that lateness not be available to users uploading information from Canvas since Canvas offers limited abilities to apply simple late policies internally. When applied, a student’s score in the grades csv would be after lateness was applied. 
+
+It appears that it may be possible to obtain a spreadsheet of assignment due times using Canvas API (however this may be complicated). This is worth looking into during the future so that Gradebook can accommodate applying lateness to Canvas exported data. 
+
+## Roster CSV:
+
+This CSV file contains information providing student email addresses in case we want to add them into the grading dataframe. Each row corresponds to a particular student in the course. 
+
+It contains the following columns:
+
+Student Name - This is in a different format than the other two CSVs. It is in the format “First Last” as if someone wrote their name in a typical fashion. 
+
+Student ID - This is the Canvas internal ID for each student. 
+
+Student SIS ID - This is the CalCentral id. It also contains examples of “UID:  xxxxxx” with seemingly greater frequency than the other CSVs. 
+
+Email - This column contains the Student’s email address!
+
+Section Name - like in other CSVs.

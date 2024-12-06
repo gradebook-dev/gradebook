@@ -7,9 +7,9 @@
 read_gs(path, verbose = FALSE)
 }
 \arguments{
-\item{path}{Path to Gradescope CSV file}
+\item{path}{Path to Gradescope CSV}
 
-\item{verbose}{Whether or not to print messages}
+\item{verbose}{whether or not to print messages}
 }
 \value{
 A dataframe of Gradescope CSV file, if no errors
@@ -19,6 +19,9 @@ This functions reads the Gradescope CSV file and checks for correct Gradescope
 format. Each assignment should follow the four-column format:
 \verb{Assignment Name}, \verb{Assignment Name - Max Points}, \verb{Assignment Name - Submission Time},
 \verb{Assignment Name - Lateness (H:M:S)}. All other columns are designed as ID columns.
+
+Now it is favored to use read_files.
+This function is left for backwards-compatibility.
 }
 \examples{
 path <- system.file("extdata", "gs_demo.csv", package = "gradebook")

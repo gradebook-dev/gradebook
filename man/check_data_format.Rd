@@ -2,7 +2,7 @@
 % Please edit documentation in R/read-gs.R
 \name{check_data_format}
 \alias{check_data_format}
-\title{Check Formatting of Gradescope Data}
+\title{Check Formatting of Grades Data}
 \usage{
 check_data_format(gs, verbose = FALSE)
 }
@@ -15,7 +15,7 @@ check_data_format(gs, verbose = FALSE)
 Same gs dataframe if no errors.
 }
 \description{
-This functions checks the column names throughout the Gradescope data.
+This functions checks the column names throughout the Grades data.
 There must be an SID column and at least one assignment.
 It also gives an alert for what ID columns and assignments are in the data.
 }

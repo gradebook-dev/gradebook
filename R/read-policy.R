@@ -21,16 +21,16 @@ read_policy <- function(path, verbose = FALSE){
 }
 
 check_keys <- function(policy, verbose = FALSE){
-  #needs to be written
+  # needs to be written
   flat_policy <- flatten_policy(policy)
-  #check that all categories have the "category" and "assignments" key
+  # check that all categories have the "category" and "assignments" key
   purrr::walk(policy$categories, function(cat){
     if (!("category" %in% names(cat) & "assignments" %in% names(cat))){
       stop(paste0("Not all categories have a category and assignments argument"))
     }
   })
   
-  #check that all keys are defined in package
+  # check that all keys are defined in package
   purrr::walk(policy$categories, function(cat){
     valid_keys <- c("category","score", "aggregation", "lateness", 
                     "drop_n_lowest","weight", "weights", "aggregation_max_pts", 

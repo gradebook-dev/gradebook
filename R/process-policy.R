@@ -20,6 +20,7 @@ process_policy <- function(policy, verbose = FALSE){
   
   return (policy)
 }
+
 #' @importFrom purrr map
 find_weights <- function(policy){
   # This function will return a policy file where the weights have been extracted from 
@@ -29,18 +30,19 @@ find_weights <- function(policy){
     purrr::map(extract_weights)
   return(policy)
 }
-#'
+
+
 #'@importFrom purrr map map_dbl
 extract_weights <- function(category){
   # If there's no more nesting, return the category as a list
   if (!("assignments" %in% names(category) && is.list(category$assignments)
   )) {
     # remove the weight from the individual category it is in for cleanliness
-    #category$weight <- NULL
+    # category$weight <- NULL (under debate; may use in the future)
     return(category)
   }
   
-  #potential problems encoded as warnings in order to allow execution to continue for app
+  # potential problems encoded as warnings in order to allow execution to continue for app
   if ( category$aggregation == "weighted_mean"){
     
     category$weights <- purrr::map_dbl(category$assignments, 
@@ -65,8 +67,8 @@ extract_weights <- function(category){
                                          }
                                          return(weight)
                                        })
-    #normalize weights
-    #policy under such conditions can be a subject of discussion
+    # normalize weights
+    # policy under such conditions can be a subject of refinement
     if (sum(category$weights) == 0){
       category$weights <- rep.int(1/length(category$weights), length(category$weights))
     } else {
@@ -100,9 +102,17 @@ extract_weights <- function(category){
 #' 
 #' @return A policy list
 #'
-#' @importFrom purrr map list_flatten
+#' @importFrom dplyr select rowwise summarise pull
+#' @importFrom purrr map list_flatten map_lgl discard
 #' @export
 reconcile_policy_with_gs <- function(policy, gs, verbose = FALSE){
+  # check if grades has source attr set
+  if (is.null(attr(gs, "source"))){
+    warning("Grades do not indicate the source. Unexpected behavior could arise. ",
+                   "Reload grades from csv using read_files to prevent such behavior.")
+  }
+  
+  
   #set_default uses gs to determine if there is a "score" key for categories made up of gs assignments
   policy <- policy |>
     set_defaults(gs, verbose = verbose)
@@ -114,12 +124,13 @@ reconcile_policy_with_gs <- function(policy, gs, verbose = FALSE){
     categories <- map(policy$categories, "category") |> unlist()
     assignments <- c(get_assignments(gs), categories)
     policy$categories <- map(policy$categories, function(cat){
+
       # drop categories with unavailable assignments/nested categories
       remaining_assignments <- cat$assignments %in% assignments
       cat$assignments <- cat$assignments[remaining_assignments]
       cat$weights <- cat$weights[remaining_assignments]
       if (length(cat$assignments) == 0){
-        #if category has no assignments, drop
+        # if category has no assignments, drop
         return (NULL)
       }
       return (cat)
@@ -136,6 +147,89 @@ reconcile_policy_with_gs <- function(policy, gs, verbose = FALSE){
     stop("None of the assignments in policy file are found in gs.")
   }
   
+  # check if lateness is attempted to be used with non Gradescope data
+  if ( 
+    # first check to ensure source attr exists to prevent errors
+    (is.null(attr(gs, "source"))) ||
+    # check if grades came from Canvas
+    ((attr(gs, "source") != "Gradescope") && 
+    # check if lateness is being used in the policy (flattened)
+      (any(purrr::map_lgl(policy$categories, 
+                        function(x){
+                          "lateness" %in% names(x)
+                        }))))
+    ) {
+    stop("Lateness calculations are only allowed with data sourced from Gradescope.")
+  }
+  
+  gs_assignments <- get_assignments(gs)
+  
+  
+  stu_wo_full_drop <- character(0)
+  
+  # determine if any students have all assignments excused in a category
+  all_excused_assignments <- purrr::map(policy$categories, function(policy_item){
+      # only need to test categories 100% sourced from grade assignments per my theorem
+      # thm: any category ungradeable -> there exists some category with only assignments from gs that is ungradeable
+      if (all(policy_item$assignments %in% gs_assignments)){
+        
+        stu_with_all_ex <- gs |>
+          dplyr::select(policy_item$assignments) |>
+          dplyr::rowwise() |>
+          dplyr::summarise(nans = all(is.na(across(policy_item$assignments)))) |>
+          dplyr::pull(nans)
+        
+        if (any(stu_with_all_ex)){
+          # if any students have all assignments excused in a category, raise error detailing students and category
+          return (paste0("Student(s) ", paste0(
+            gs$SID[stu_with_all_ex], collapse = ", "), 
+            " have no unexcused assignments in category ", policy_item$category, 
+            "."))
+        }
+        return (NULL)
+      }
+    }
+  ) |>
+    purrr::discard(is.null) |>
+    as.character()
+  
+  stu_wo_full_drop <- purrr::map(policy$categories, function(policy_item){
+    
+    if ("drop_n_lowest" %in% names(policy_item)) {
+     if (all(policy_item$assignments %in% gs_assignments)){
+        stu_num_na <- gs |>
+          dplyr::select(policy_item$assignments) |>
+          dplyr::rowwise() |>
+          dplyr::summarise(nans = sum(is.na(across(policy_item$assignments)))) |>
+          dplyr::pull(nans)
+        
+        not_full_drops <- (length(policy_item$assignments) - stu_num_na - 1) < policy_item$drop_n_lowest
+        
+        if (any(not_full_drops)){
+          return (paste0("Student(s) ", paste0(
+            gs$SID[not_full_drops], collapse = ", "), 
+            " will not receive full drops in category ", policy_item$category, 
+            "."))
+        }
+        return(NULL)
+        
+      }
+    }
+    return(NULL)
+  }) |>
+    purrr::discard(is.null) |>
+    as.character()
+  
+  if (length(all_excused_assignments) > 0){
+    warning(paste0(all_excused_assignments, collapse = "\n"), 
+            "\nManually set grades for any effected students.")
+  }
+  
+  if (length(stu_wo_full_drop) > 0){
+    warning(paste0(stu_wo_full_drop, collapse = "\n"), 
+            "\nManually set grades for any effected students.")
+  }
+  
   policy
 }
 
@@ -148,15 +242,15 @@ set_defaults <- function(policy, gs, verbose = FALSE){
   
   # add default values if missing
   policy$categories <- map(policy$categories, function(cat){
-    #if min_score/max_score aggregation
+    # if min_score/max_score aggregation
     if ("aggregation" %in% names(cat) & cat[["aggregation"]] %in% c("min_score", "max_score")){
-      #default for max pts aggregation is "mean_max_pts"
+      # default for max pts aggregation is "mean_max_pts"
       default_cat[["aggregation_max_pts"]] = "mean_max_pts"
     } else {
       default_cat[["aggregation_max_pts"]] = "sum_max_pts"
     }
     
-    #merge default_cat to category
+    # merge default_cat to category
     for (default_name in names(default_cat)){
       if (!(default_name %in% names(cat))){
         default <- list(default_cat[[default_name]])
@@ -164,9 +258,9 @@ set_defaults <- function(policy, gs, verbose = FALSE){
         cat <- append(cat, default)
       }
     }
-    #if all assignments are in gs (i.e. there are no nested categories)
+    # if all assignments are in gs (i.e. there are no nested categories)
     if (!("score" %in% names(cat)) & sum(cat[["assignments"]] %in% get_assignments(gs)) != 0){
-      #default score is raw_over_max
+      # default score is raw_over_max
       score <- list(
         category = cat[["category"]],
         score = "raw_over_max")
@@ -226,4 +320,6 @@ extract_nested <- function(category) {
   
   # Return the flattened nested categories followed by the current category
   c(nested_categories_flattened, list(category))
+
 }
+

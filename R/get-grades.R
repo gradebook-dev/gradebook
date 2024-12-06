@@ -17,6 +17,7 @@
 #' @return A dataframe of the original Gradescope data with computed categories' scores appended as additional columns 
 #'
 #' @importFrom dplyr select relocate left_join mutate_at vars mutate
+#' @importFrom tibble as_tibble
 #' 
 #' @export
 get_grades <- function(gs, policy, verbose = FALSE){
@@ -28,7 +29,8 @@ get_grades <- function(gs, policy, verbose = FALSE){
     process_policy(verbose = verbose) |>
     reconcile_policy_with_gs(gs = gs, verbose = verbose)
   
-  calculate_grades(gs, policy)
+  calculate_grades(gs, policy) |>
+    tibble::as_tibble()
   
 }
 
@@ -49,39 +51,47 @@ get_grades <- function(gs, policy, verbose = FALSE){
 #'
 #' @return A dataframe of the original Gradescope data with computed categories' scores appended as additional columns
 #'
+#' @importFrom dplyr relocate mutate select
 #' @export
 calculate_grades <- function(gs, policy){
   # convert gs into a matrix with only assignment info
   grades_mat <- gs |>
-    #only assignment info
+    # only assignment info
     select(-get_id_cols(gs)) |> 
-    #convert lateness into minutes
+    # convert lateness into minutes
     mutate_at(vars(ends_with(" - Lateness (H:M:S)")), convert_to_min) |> 
-    #convert to matrix
+    # convert to matrix
     data.matrix()
   raw_cols <- get_assignments(gs)
-  grades_mat[, raw_cols][is.na(grades_mat[, raw_cols])] <- 0
-  #rownames are SID of student
+  
+  # rownames are SID of student
   rownames(grades_mat) <- gs$SID
-  #pre_allotted cols
+  # handle droppping excused assignments
+  grades_mat <- handle_excused(grades_mat, raw_cols)
+  
+  # pre_allotted cols
   categories <- unlist(map(policy$categories, "category"))
   empty <- matrix(nrow = length(gs$SID), ncol = length(categories)*3)
   colnames(empty) <- paste0(rep(categories, each = 3), c("", " - Max Points", " - Lateness (H:M:S)"))
   grades_mat <- cbind(grades_mat, empty)
   
   
-  #iterate through each policy item
+  # iterate through each policy item
   for (policy_item in policy$categories){
-    #compute calculations for each policy file and save into grades matrix
+    
     grades_mat <- get_category_grade(grades_mat, policy_item)
   }
   
   grades <- grades_mat |>
     as.data.frame()
-  grades$SID <- as.numeric(rownames(grades_mat)) #add back SID
+  
+  # add back SID
+  grades$SID <- as.character(rownames(grades_mat) )
+ 
   
   idcols <- gs |>
-    select(get_id_cols(gs))
+    dplyr::select(get_id_cols(gs)) |>
+    dplyr::mutate(SID = as.character(SID))
   
   grades <- grades |>
     left_join(idcols, by = "SID") |>
@@ -89,6 +99,19 @@ calculate_grades <- function(gs, policy){
   
   return (grades)
 }
+
+
+handle_excused <- function(grades_mat, assignments){
+  # this function sets the max value for excused assignments to NA
+  # similar to the approach of drop_n_lowest, setting the max points to NA drops the assignment for the student
+  
+  max_cols <- paste0(assignments, " - Max Points")
+  
+  grades_mat[,max_cols][is.na(grades_mat[,assignments])] <- NA
+  
+  return(grades_mat)
+}
+
 
 #' Calculate A Single Category Grade
 #' 
@@ -104,9 +127,9 @@ calculate_grades <- function(gs, policy){
 #' 
 #' @export
 get_category_grade <- function(grades_mat, policy_item){
-  #get all keys except category and assignments (which are not functions)
+  # get all keys except category and assignments (which are not functions)
   keys <- names(policy_item)[-which(names(policy_item) %in% c("category", "assignments", "weights", "weight"))]
-  #all assignments + their associated cols for this category
+  # all assignments + their associated cols for this category
   for (key in keys){
     grades_mat <- get(key)(grades_mat, policy_item[[key]], policy_item$category, 
                            policy_item$assignments, policy_item$weights)
@@ -169,17 +192,32 @@ lateness <- function(grades_mat, policy_line, category, assignments, weights = c
 #' @rdname score
 #' @export
 drop_n_lowest <- function(grades_mat, policy_line, category, assignments, weights = c()){
-  n <- policy_line #number of drops
-  if (n == 0){ #if no drops
-    return (grades_mat) #no change
+  n <- policy_line # number of drops
+  if (n == 0){ # if no drops
+    return (grades_mat) # no change
   }
+  
+  
   grades_mat[, assignments] <- t(apply(t(grades_mat[, assignments]), 2, function(assign){
-    if (length(assignments) == 1) return (assign) #if only one assignment, no drops
-    lowest_indices <- order(assign)[1:n] #indices of n lowest assignments
-    if (n >= length(assignments)) { #if more drops than assignments
-      lowest_indices <- order(assign)[1:(length(assignments)-1)] #drop all but one
-    }
-    assign[lowest_indices] <- NA #drop designated scores
+    # if only one assignment, no drops
+    # unnecessary but keep for efficiency
+    if (length(assignments) == 1) return (assign) 
+    
+    # count the number of excused assignments
+    num_excused <- sum(is.na(assign))
+    
+    # the number of graded assignments will be length(assignment) - num_excused
+    # a student can drop up to that many - 1. 
+    # so take the min of n and possible allowed drops
+    num_to_drop <- min(c(n, length(assignments) - num_excused - 1))
+ 
+    
+    # if no drops to do return assign
+    if (num_to_drop <= 0) return (assign) 
+    
+    lowest_indices <- order(assign)[1:num_to_drop]
+    
+    assign[lowest_indices] <- NA # drop designated scores
     return(assign)
   }))
   

@@ -289,7 +289,8 @@ test_that("If some weighted_mean category has no weights", {
     )
   )
   pol <- list(categories = cats)
-  act <- find_weights(pol)
+  act <- suppressWarnings(find_weights(pol))
+  suppressWarnings(expect_warning(find_weights(pol)))
   expect_equal(pol, act)
 })
 
@@ -360,7 +361,12 @@ test_that("Some cats missing weights", {
     )
   )
   exp <- list(categories = cats2)
-  actual <- find_weights(pol)
+  suppressWarnings(expect_warning(find_weights(pol)))
+  
+  actual <- suppressWarnings(
+    find_weights(pol)
+  )
+  
   expect_equal(exp, actual)
 })
 
@@ -404,7 +410,9 @@ test_that("Extracting Weights with length > 1", {
   pol <- list(categories = cats)
   expect_warning(find_weights(pol))
   
-  actual <- find_weights(pol)
+  expect_warning(find_weights(pol))
+  
+  actual <- suppressWarnings(find_weights(pol))
   
   cats2 <- list(list(
     category = "Overall Grade",

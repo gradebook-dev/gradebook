@@ -1,0 +1,53 @@
+---
+title: "Excusing Assignments"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Excusing Assignments}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(gradebook)
+```
+
+Gradebook supports instructors "excusing" certain students from certain assignments. 
+
+## What does it mean to "excuse" an assignment?
+
+When an instructor "excuses" an assignment, this is equivalent to allowing the student to drop the assignment. This means that the assignment will not be counted towards the student's final grade. This is not equivalent to giving the student a 0 on an assignment. Excusing a student from an assignment removes both the student's score and the assignment's points possible from consideration for that student.
+
+### An Example
+Mathematically, consider the common scenario where the student's grade equals the number of points student received on the assignments divided by the number of points possible on the assignments. 
+
+For example, suppose that we have a category named Homework with assignments HW 1, HW 2, and HW 3. Suppose that each assignment is worth 10 points and a student Jenny received 2, 6, and 8 points on the homework respectively. Then Jenny would receive homework score (2 + 6 + 8) / (10 + 10 + 10) = 8/15.
+
+In our example, suppose that we excused another student Timmy from Homework 1. If Timmy got 5 and 7 points on homework 2 and 3, then Timmy's Homework score would be (5 + 7)/(10 + 10) = 0.6. 
+
+
+## How to Excuse Assignments
+
+Our notation for excusing assignments is molded around Canvas's notation for excusing assignments. Thus, Canvas users can simply excuse an assignment in Canvas and Gradebook will recognize the assignment as excused. 
+
+Users of other grade aggregators who wish to excuse assignments should set the assignment's score value to "EX" for it to be excused in Gradebook. 
+
+## Notes on the Interaction between Dropped Assignments and Category Drops
+
+In addition to excusing assignments, Gradebook users may also specify a number of drops that will drop each student's lowest n assignment scores in the specified category. Full details on the working of drops are available [here](https://gradebook-dev.github.io/gradebook/articles/policy-files.html). 
+
+When working with drops and excused assignments, Gradebook has the constraint that all students must have at least one un-dropped and un-excused assignments in each category. When necessary to retain 1 graded assignment, having excused assignments in the category can lead to fewer assignments being dropped in the category than the n specified in drop_n_lowest. Should this corner case arise, a warning will be raised informing instructors to review the student's grades, in case their intentions are different.
+
+### Example
+
+Consider the following example again involving Timmy. Imagine that there are 4 assignments named Lab 1 through 4 and 2 drops in the syllabus for the labs. Suppose that Timmy was excused from Lab 1 and Lab 2. To keep one Lab assignment with a grade remaining, we can only drop one Lab for Timmy. Thus Timmy only gets 1 drop rather than the 2 drops in the syllabus.
+
+## Other Constraints with Excused Assignments
+
+As mentioned above, every policy category must have at least one un-excused assignment for all students. If any student has all assignments excused for some category, Gradebook will raise a warning detailing the student and category. For any students in this situation, their grade should be manually set after running Gradebook.

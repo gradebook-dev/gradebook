@@ -1,6 +1,6 @@
 Package: gradebook
-Title: Calculate course grades based on assignment scores from Gradescope and a description of the course grading policy
-Version: 1.0.0
+Title: Calculate course grades based on assignment scores from Gradescope or Canvas and a description of the course grading policy
+Version: 1.1.0
 Authors@R: c(person(
                     given = "Nikita", 
                     family = "Jayaprakash", 
@@ -20,7 +20,7 @@ Authors@R: c(person(
                     given = "Zachary",
                     family = "Turner",
                     email = "zachturner@berkeley.edu",
-                    role = "ctb"
+                    role = "aut"
             )
                     )
 Description: A system to make course grade calculations easy, fast, 

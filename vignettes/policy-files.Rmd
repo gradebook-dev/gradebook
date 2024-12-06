@@ -2,7 +2,7 @@
 title: "Building a Policy File"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{policy-files}
+  %\VignetteIndexEntry{Building a Policy File}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
