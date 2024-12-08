@@ -1,0 +1,47 @@
+coursewide:
+  course_name: Stat 101
+  description: Syllabus for gs_demo
+slip_days:
+  - name: "Slip Days 1"
+    num_slip_days: 2
+    order: chronological
+    assignments:
+        - "Lab 1"
+        - "Lab 2"
+        - "Lab 3"
+        - "Lab 4"
+        - "Lab 5"
+        - "Lab 6"
+categories:
+  - category: Overall Grade
+    aggregation: weighted_mean
+    assignments:
+    - category: Labs
+      lateness:
+      - after: "00:00:01"
+      - set_to: 0.0
+      aggregation: weighted_by_points
+      weight: 0.3
+      assignments:
+        - "Lab 1"
+        - "Lab 2"
+        - "Lab 3"
+        - "Lab 4"
+        - "Lab 5"
+        - "Lab 6"
+    - category: Discussion
+      aggregation: equally_weighted
+      weight: 0.1
+      assignments:
+        - "Discussion 1"
+        - "Discussion 2"
+    - category: Midterm Exam
+      aggregation: none
+      weight: 0.3
+      assignments:
+        - "Midterm"
+    - category: Final Exam
+      aggregation: none
+      weight: 0.3
+      assignments:
+        - "Final"

@@ -1,0 +1,56 @@
+---
+title: "Applying Slip Days to Your Grading Policy"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{slip-days}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Slip days are a unique grading policy, where there is an allotted budget of allowed lateness that can be applied to certain assignments. Here's an example of what that looks like in a policy file. Note that `slip_days` are their own separate section in the grading policy and do no fall under the other `categories` grading criteria. Often, slip days are computed prior to applying other grading policies because they adjust the lateness.
+```yaml
+`r xfun::file_string(system.file("extdata", "slip-days-policy-demo.yaml", package = "gradebook"))`
+
+```
+In this policy, there are 5 allotted "slip days" for the six Lab assignments. This means that students can turn in their assignments up to 2 days late across their Lab assignments with no additional lateness penalty applied. Usually, these slip days are allotted chronologically, so if a student turns in Lab 1 5 dates late, they do not have any more slip days for the rest of the labs. Similarly, if a student turned in Lab 1 a day late, they can still turn one of the other labs at most a day late with no penalty. In addition, the lateness are rounded up to the next day, so a student will use up a slip day if their assignment is turned in 1 minute late or 23 hours late.
+
+The `order` key here explicitly determines that the order in which slip days are allotted is `chronological`. This is the default as well, if there was no `order` key. Another accepted key is `given`, which allotts slip days based on the order given in the policy file in `assignments` under `slipdays` with no regard to the chronological order of these assignments.
+
+The lateness policy for `Labs` in `categories` section shows that any late assignments receive a zero. This is implemented after a student's slip days run out.
+
+The process for computing the grades using `Nemo Gradebook` is the same as any other policy file, as demonstrated below.
+```{r setup}
+library(gradebook)
+gs <- gradebook::read_gs(system.file("extdata", "gs_demo.csv", package = "gradebook"))
+policy <- gradebook::read_policy(system.file("extdata", "slip-days-policy-demo.yaml", package = "gradebook"))
+grades <- get_grades(gs, policy)
+```
+
+Here is what the grades look like:
+```{r, echo = FALSE}
+grades |>
+  knitr::kable()
+```
+
+Note that there is also a column called "Slip Days 1", which shows how much of their "slip-days budget" each student has used up.
+
+Here is a before-and-after comparison of how students' lateness are updated after applying slip days.
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(dplyr)
+labs <- c("Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6")
+score_and_late_cols <- paste0(rep(labs, each = 2), c(""," - Lateness (H:M:S)"))
+gs |>
+  select(all_of(c("SID", score_and_late_cols))) |>
+  knitr::kable()
+grades |>
+  select(all_of(c("SID", score_and_late_cols, "Remaining: Slip Days 1")))|>
+  knitr::kable()
+```
+Note that majority of late submissions were within the allotted "slip day budget," but the last student had additional lateness in Lab 5. This means that, in the final grades results, this student will receive a zero on this assignment as a resulting penalty.

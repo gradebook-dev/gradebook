@@ -95,9 +95,19 @@ knitr::kable(grades)
 ## Syllabus as a Grading Script
 Here is the coded version of the same syllabus.
 ```{r}
+#function to convert HH:MM:SS into minutes
+convert_to_min <- function(hms){
+  purrr::map_vec(hms, function(time){
+    units <- stringr::str_split(time, pattern = ":") |>
+      unlist() |>
+      as.numeric()
+    sum(units*c(60,1,1/60))
+  })
+}
+
 # function to implement lateness policy
 lateness_penalty <- function(score_vec, lateness_vec){
-  lateness <- lubridate::period_to_seconds(lubridate::hms(lateness_vec))/60
+  lateness <- convert_to_min(lateness_vec)
   dplyr::case_when(
     lateness == 0 ~ score_vec,
     lateness <= 1440 ~ 0.9*score_vec,

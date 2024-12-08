@@ -32,12 +32,13 @@ Encoding: UTF-8
 Imports: 
     cli,
     dplyr,
-    lubridate,
+    hms,
     purrr,
     stringr,
     tibble,
     tidyr,
     readr,
+    stats,
     yaml
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
