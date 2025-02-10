@@ -28,10 +28,10 @@ This article details Gradebook workflows for users who use Canvas to collect stu
 
 The primary csv file needed from Canvas is the grades file, which contains the assignment grades for each student. To source this file, navigate to the "Grades" tab on Canvas. On the grades page, click "Export" and then "Export Entire Gradebook".
 
-See the below image for visual guidance. 
 
 ```{r echo=FALSE, out.width='100%'}
-  knitr::include_graphics(system.file("extdata", "canvasGradeIm.png", package = "gradebook"))
+# try to make images work
+  # knitr::include_graphics(system.file("extdata", "canvasGradeIm.png", package = "gradebook"))
 #knitr::include_graphics("../inst/extdata/canvasGradeIm.png")
 ```
 
@@ -79,15 +79,17 @@ The lateness file details which assignments where submitted late by which studen
 
 The roster csv file gives all student names and their contact information, which can be relevant if instructors desire to have student contact information available in the exported grades file.
 
-Both of these files are accessed through the "New Analytics" tab available on the right side of the course homepage. To download these files, click Analytics on the home page, navigate to the Reports tab and download the desired report. Reference the photos below. 
+Both of these files are accessed through the "New Analytics" tab available on the right side of the course homepage. To download these files, click Analytics on the home page, navigate to the Reports tab and download the desired report. 
 
 ```{r echo=FALSE, out.width='100%'}
-  knitr::include_graphics(system.file("extdata", "canvasAnalytics.png", package = "gradebook"))
+# try to make images work
+  # knitr::include_graphics(system.file("extdata", "canvasAnalytics.png", package = "gradebook"))
 
 ```
 
 ```{r echo=FALSE, out.width='100%'}
-  knitr::include_graphics(system.file("extdata", "canvasAnalyticsOptions.png", package = "gradebook"))
+# try to make images work
+  # knitr::include_graphics(system.file("extdata", "canvasAnalyticsOptions.png", package = "gradebook"))
 
 ```
 

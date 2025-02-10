@@ -210,15 +210,25 @@ read_canvas_grades <- function(grades){
 #' @importFrom tidyr replace_na
 #' @importFrom dplyr if_else
 impute_missing_excused_input <- function(x) {
-  # this function will impute missing and excused assignments upon readin
+  # this function will impute missing and excused assignments upon read-in
   # it is a helper function for read_gradescope_grades and read_canvas_grades
   # Logic: Missing assignments (read in as NAs) get 0 score
   # Excused assignments (read in as "EX") get NA value
-  if(is.numeric(x)){
-    return(tidyr::replace_na(x, 0))
-  } 
-  x <- tidyr::replace_na(x, "0") 
-  dplyr::if_else(x == "EX", NA, x) |>
+  if(is.character(x)){
+    # if character, we also have to deal with "EX"
+    x <- tidyr::replace_na(x, "0") 
+    out <- dplyr::if_else(x == "EX", NA, x) |>
+      as.numeric()
+    return(out)
+  } else if (is.logical(x)) {
+    replace_val <- as.logical(0)
+  } else if (is.numeric(x)) {
+    replace_val <- 0
+  } else {
+    stop("Unsupported Datatype")
+  }
+  # now we do not need to deal with "EX"
+  tidyr::replace_na(x, replace_val) |>
     as.numeric()
 }
 
