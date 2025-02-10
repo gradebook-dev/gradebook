@@ -990,3 +990,82 @@ test_that("Testing get_grades without UID in SID col", {
   
 })
 
+
+test_that("assignment exists in 2 categories -- compute correct score", {
+ 
+  gs <- tibble::tibble(
+    `First Name` = c("Joe", "Harrison", "Don", "Kevin"),
+    `Last Name` = c("Oneida", "Eagle", "Torrensen", "Falcon"),
+    SID = c(98657, "12345", "76589", 44567),
+    Email = c("joe@on.com", "he@eagle.net", "don@gmail.com", "kev@berkeley.edu"),
+    
+    `Midterm` = c(40, 40, 40, 40),
+    `Midterm - Max Points` = c(50, 50, 50, 50),
+    `Midterm - Submission Time` = c("1/21/2023 9:25:00 AM", "1/21/2023 9:25:00 AM", "1/21/2023 10:00:00 AM",
+                                    "1/21/2023 9:50:00 AM"),
+    `Midterm - Lateness (H:M:S)` = c("0:00:00", "0:00:00", "0:00:00", "0:00:00"),
+    
+    `Final Exam` = c(90, 90, 90, 90),
+    `Final Exam - Max Points` = c(100, 100, 100, 100),
+    `Final Exam - Submission Time` = c("1/22/2023 9:25:00 AM", "1/22/2023 9:25:00 AM",
+                                       "1/22/2023 10:00:00 AM", "1/22/2023 9:25:00 AM"),
+    `Final Exam - Lateness (H:M:S)` = c("0:00:00","0:00:00","0:00:00","0:00:00")
+  )
+  attr(gs, "source") <- "Gradescope"
+  
+  cats <- list(
+    
+    coursewide = list(
+      course_name = "Stat 101",
+      description = "Fall Semester"
+    ),
+    categories = list(
+      list(
+        category = "Overall Grade",
+        weight = 1.0,
+        aggregation = "weighted_mean",
+        assignments = list(
+          list(
+            category = "Midterm Clobbered",
+            weight = 0.50,  
+            aggregation = "max_score",
+            assignments = c("Midterm", "Final Exam")
+          ),
+          list(
+            category = "Final",
+            weight = 0.50,
+            aggregation = "equally_weighted",
+            assignments = "Final Exam"
+          )
+        )
+      )
+    ),
+    exceptions = list()
+  )
+  
+  
+  gs <- gs |> 
+    process_gs()
+  
+  policy <- cats |>
+    process_policy(verbose = TRUE) |>
+    reconcile_policy_with_gs(gs = gs, verbose = TRUE)
+  
+  actual <- get_grades(gs=gs, policy=policy)
+  actual_subset_of_clumns <- actual |>
+    select('First Name','Last Name', 'SID', 'Email', 'Midterm Clobbered', 
+           'Final', 'Overall Grade')
+  
+  expected <- tibble::tibble(
+    `First Name` = c("Joe", "Harrison", "Don", "Kevin"),
+    `Last Name` = c("Oneida", "Eagle", "Torrensen", "Falcon"),
+    `SID` = c(98657, "12345", "76589", 44567),
+    `Email` = c("joe@on.com", "he@eagle.net", "don@gmail.com", "kev@berkeley.edu"),
+    `Midterm Clobbered` = c(0.9, 0.9, 0.9, 0.9),
+    `Final` = c(0.9, 0.9, 0.9, 0.9),
+    `Overall Grade` = c(0.9, 0.9, 0.9, 0.9)
+  )
+  
+  expect_equal(actual_subset_of_clumns, expected)
+  
+})

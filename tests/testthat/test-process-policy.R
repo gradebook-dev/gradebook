@@ -867,7 +867,6 @@ test_that("reconcile policy with gs - add score key to categories with gs assign
   expected_cat <- list(
     list(
       category = "Lab 1",
-      score = "raw_over_max",
       aggregation = "max_score",
       assignments = c("Lab 1.1", "Lab 1.2"),
       aggregation_max_pts = "mean_max_pts",
@@ -875,7 +874,6 @@ test_that("reconcile policy with gs - add score key to categories with gs assign
     ),
     list(
       category = "Lab 2",
-      score = "raw_over_max",
       aggregation = "max_score",
       assignments = c("Lab 2.1", "Lab 2.2", "Lab 2.3"),
       aggregation_max_pts = "mean_max_pts",
@@ -890,7 +888,6 @@ test_that("reconcile policy with gs - add score key to categories with gs assign
     ),
     list(
       category = "Quizzes",
-      score = "raw_over_max",
       aggregation = "weighted_by_points",
       assignments = "Quiz 1",
       aggregation_max_pts = "sum_max_pts",

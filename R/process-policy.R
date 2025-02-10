@@ -270,15 +270,15 @@ set_defaults <- function(policy, gs, verbose = FALSE){
         cat <- append(cat, default)
       }
     }
-    # if all assignments are in gs (i.e. there are no nested categories)
-    if (!("score" %in% names(cat)) & sum(cat[["assignments"]] %in% get_assignments(gs)) != 0){
-      # default score is raw_over_max
-      score <- list(
-        category = cat[["category"]],
-        score = "raw_over_max")
-      cat[["category"]] <- NULL #to make sure "category" is still first item
-      cat <- append(score, cat)
-    }
+    # # if all assignments are in gs (i.e. there are no nested categories)
+    # if (!("score" %in% names(cat)) & sum(cat[["assignments"]] %in% get_assignments(gs)) != 0){
+    #   # default score is raw_over_max
+    #   score <- list(
+    #     category = cat[["category"]],
+    #     score = "raw_over_max")
+    #   cat[["category"]] <- NULL #to make sure "category" is still first item
+    #   cat <- append(score, cat)
+    # }
     
     return (cat)
   })

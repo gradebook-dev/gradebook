@@ -78,6 +78,9 @@ calculate_grades <- function(gs, policy){
   grades_mat <- cbind(grades_mat, empty)
   
   
+  #compute raw over max --grades are in percentage points (90% is 0.9) instead of raw scores!
+  grades_mat <- raw_over_max(grades_mat, raw_cols)
+  
   # iterate through each policy item
   for (policy_item in policy$categories){
     
